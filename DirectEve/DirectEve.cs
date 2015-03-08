@@ -22,7 +22,7 @@ namespace DirectEve
     public class DirectEve : IDisposable
     {
         private DirectEveSecurity _security;
-        private bool _securityCheckFailed;
+        //private bool _securityCheckFailed;
 
         /// <summary>
         ///     ActiveShip cache
@@ -205,14 +205,6 @@ namespace DirectEve
 
                 Log("-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+");
                 Log("Starting DirectEve v" + _security.Version);
-                if (_security.Email != "anonymous")
-                {
-                    Log("Registered to " + _security.Email);
-                    if (_security.ActiveInstances != -1 && _security.SupportInstances != -1)
-                        Log("You are currently using " + _security.ActiveInstances + " of " + _security.SupportInstances + " support instances");
-                }
-                else
-                    Log("You are using the anonymous license, please consider upgrading to a support license (http://support.thehackerwithin.com)");
                 Log("Copyright (c) 2012 - TheHackerWithin");
                 Log("http://www.thehackerwithin.com");
                 Log("-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+");
@@ -223,35 +215,26 @@ namespace DirectEve
                 throw ex;
             }
 #endif
-            try
-            {
-                _localSvcCache = new Dictionary<string, PyObject>();
-                _containers = new Dictionary<long, DirectContainer>();
-                _lastKnownTargets = new Dictionary<long, DateTime>();
+            
+            _localSvcCache = new Dictionary<string, PyObject>();
+            _containers = new Dictionary<long, DirectContainer>();
+            _lastKnownTargets = new Dictionary<long, DateTime>();
 
 #if DEBUG
-                Log("Registering OnFrame event");
+            Log("Registering OnFrame event");
 #endif
-                if (enableStealth)
-                {
-                    try
-                    {
-                        Hooks.InitializeHooks();
-                    }
-                    catch (Exception ex)
-                    {
-                        Log("Warning: Failed to initialize stealth hooks: " + ex);
-                    }
-                }
-                _framework.RegisterFrameHook(FrameworkOnFrame);
-            }
-            catch (Exception e)
+            if (enableStealth)
             {
-#if DEBUG
-                Log("DirectEve: Debug: Exception after license check: " + e.Message + " stacktrace: " + e.StackTrace);
-#endif
-                throw;
+                try
+                {
+                    Hooks.InitializeHooks();
+                }
+                catch (Exception ex)
+                {
+                    Log("Warning: Failed to initialize stealth hooks: " + ex);
+                }
             }
+            _framework.RegisterFrameHook(FrameworkOnFrame);
         }
 
         /// <summary>
@@ -536,9 +519,6 @@ namespace DirectEve
             if (_framework != null)
                 _framework.Dispose();
 
-            if (_security != null)
-                _security.QuitDirectEve();
-
             _security = null;
             _framework = null;
         }
@@ -582,24 +562,6 @@ namespace DirectEve
                 // Make the link to the instance
                 PySharp = pySharp;
 
-#if !NO_DIRECTEVE_SECURITY
-                // Pulse security
-                if (_security == null || !_security.Pulse())
-                {
-                    if (!_securityCheckFailed)
-                    {
-                        _securityCheckFailed = true;
-                        Log("DirectEve supported instance check failed!");
-                    }
-                    return;
-                }
-
-                if (_securityCheckFailed)
-                {
-                    _securityCheckFailed = false;
-                    Log("DirectEve supported instance check succeeded, continuing...");
-                }
-#endif
                 // Get current target list
                 dynamic ps = pySharp;
                 // targetsByID and targeting are now dictionaries
@@ -1273,30 +1235,12 @@ namespace DirectEve
             _framework.Log(msg);
         }
 
-        /// <summary>
-        ///     Does this user have available support instances?
-        ///     NOTE: Do not use this function to gate mission critical features
-        ///     which may cause loss of assets in the event of a license server
-        ///     error!
-        /// </summary>
-        /// <returns>True if the user has support instances.</returns>
-        public bool HasSupportInstances()
-        {
-#if !NO_DIRECTEVE_SECURITY
-            return _security.Email != "anonymous" && _security.SupportInstances >= 0 && _security.ActiveInstances <= _security.SupportInstances;
-#endif
-            return true;
-        }
-
+        
         public bool Sell(DirectItem item, int StationId, int quantity, double price, int duration, bool useCorp)
         {
             if (!item.PyItem.IsValid)
                 return false;
-            if (!HasSupportInstances())
-            {
-                Log("DirectEve: Error: This method requires a support instance.");
-                return false;
-            }
+            
             //var pyRange = GetRange(range);
             //def SellStuff(self, stationID, typeID, itemID, price, quantity, duration = 0, useCorp = False, located = None):
             return ThreadedLocalSvcCall("marketQuote", "SellStuff", StationId, item.TypeId, item.ItemId, price, quantity, duration, useCorp); //pyRange);
@@ -1319,11 +1263,6 @@ namespace DirectEve
 
         public bool Buy(int StationId, int TypeId, double Price, int quantity, DirectOrderRange range, int minVolume, int duration) //, bool useCorp)
         {
-            if (!HasSupportInstances())
-            {
-                Log("DirectEve: Error: This method requires a support instance.");
-                return false;
-            }
             var pyRange = GetRange(range);
             //def BuyStuff(self, stationID, typeID, price, quantity, orderRange = None, minVolume = 1, duration = 0, useCorp = False):
             return ThreadedLocalSvcCall("marketQuote", "BuyStuff", StationId, TypeId, Price, quantity, pyRange, minVolume, duration); //, useCorp);

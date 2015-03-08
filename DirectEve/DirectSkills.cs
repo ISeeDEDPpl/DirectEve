@@ -118,12 +118,6 @@ namespace DirectEve
         /// <returns></returns>
         public bool RefreshMySkills()
         {
-            if (!DirectEve.HasSupportInstances())
-            {
-                DirectEve.Log("DirectEve: Error: This method requires a support instance.");
-                return false;
-            }
-
             var mySkills = DirectEve.GetLocalSvc("skills").Attribute("MySkills");
 
             var keywords = new Dictionary<string, object>();
@@ -138,12 +132,6 @@ namespace DirectEve
         /// <returns></returns>
         public bool AddSkillToEndOfQueue(DirectInvType skill)
         {
-            if (!DirectEve.HasSupportInstances())
-            {
-                DirectEve.Log("DirectEve: Error: This method requires a support instance.");
-                return false;
-            }
-
             if (!AreMySkillsReady)
                 return false;
 
@@ -175,12 +163,6 @@ namespace DirectEve
         /// <returns></returns>
         public bool TrainSkillNow(DirectInvType skill)
         {
-            if (!DirectEve.HasSupportInstances())
-            {
-                DirectEve.Log("DirectEve: Error: This method requires a support instance.");
-                return false;
-            }
-
             if (!AreMySkillsReady)
                 return false;
 

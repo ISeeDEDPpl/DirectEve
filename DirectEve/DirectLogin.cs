@@ -108,12 +108,6 @@ namespace DirectEve
         /// <returns></returns>
         public bool Login(string username, string password)
         {
-            if (!DirectEve.HasSupportInstances())
-            {
-                DirectEve.Log("DirectEve: Error: This method requires a support instance.");
-                return false;
-            }
-
             LoginLayer.Attribute("usernameEditCtrl").Call("SetValue", username);
             LoginLayer.Attribute("passwordEditCtrl").Call("SetValue", password);
             return DirectEve.ThreadedCall(LoginLayer.Attribute("_Connect"));

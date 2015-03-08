@@ -77,12 +77,6 @@ namespace DirectEve
         /// <returns></returns>
         public bool AddToEndOfQueue()
         {
-            if (!DirectEve.HasSupportInstances())
-            {
-                DirectEve.Log("DirectEve: Error: This method requires a support instance.");
-                return false;
-            }
-
             return DirectEve.Skills.AddSkillToEndOfQueue(this);
         }
 
@@ -92,12 +86,6 @@ namespace DirectEve
         /// <returns></returns>
         public bool TrainNow()
         {
-            if (!DirectEve.HasSupportInstances())
-            {
-                DirectEve.Log("DirectEve: Error: This method requires a support instance.");
-                return false;
-            }
-
             return DirectEve.Skills.TrainSkillNow(this);
         }
 
