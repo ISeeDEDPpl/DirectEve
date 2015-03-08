@@ -171,6 +171,15 @@ namespace DirectEve
                     break;
                 case "OK":
                 case "Ok":
+                    if (Name == "Set Quantity")
+                    {
+                        if (PyWindow != null)
+                        {
+                            PyWindow.Call("Confirm", 12345);
+                            return true;
+                        }
+                        return false;
+                    }
                     buttonPath[4] = "OK_Btn";
                     break;
                 case "Cancel":
